@@ -1,112 +1,118 @@
 package com.lis.mgr;
 
 
-import com.lis.mgr.gui.GamePanel;
-import com.lis.mgr.gui.MainFrame;
+import com.lis.mgr.gui.GameGui;
 import com.lis.mgr.logic.LifeBoard;
-import com.lis.mgr.res.LifeParser;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
-public class Main {
+public class Main extends JFrame {
     public static final int SIZE = 500;
     public static final double FACTOR = 0.5;
-    public static final int SCALE = 3;
+    public static final int SCALE = 1;
 
     private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    private GameGui gameGui;
 
 
-    init {
-        createUI(title)
+    Main() {
+        createUI("Game of Life");
     }
 
 
-    private fun createLayout(vararg arg: JComponent) {
-        val gl = GroupLayout(contentPane)
-        contentPane.layout = gl
+    private void createLayout(JComponent arg) {
+        GroupLayout gl = new GroupLayout(getContentPane());
+        getContentPane().setLayout(gl);
 
-        gl.autoCreateContainerGaps = true
+        gl.setAutoCreateContainerGaps(true);
 
         gl.setHorizontalGroup(
                 gl.createSequentialGroup()
-                        .addComponent(arg[0])
-        )
+                        .addComponent(arg)
+        );
 
         gl.setVerticalGroup(
                 gl.createSequentialGroup()
-                        .addComponent(arg[0])
-        )
+                        .addComponent(arg)
+        );
 
-        pack()
+        pack();
     }
 
-    private fun createUI(title: String) {
-        setTitle(title)
-        defaultCloseOperation = EXIT_ON_CLOSE
-        setSize(300, 200)
-        setLocationRelativeTo(null)
+    private void createUI(String title) {
+        setTitle(title);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setSize(300, 200);
+        setLocationRelativeTo(null);
 
-        clashGUI = ClashGUI()
+        gameGui = new GameGui();
 
-        selectionController = SelectionController().withBytesTable(clashGUI.bytesTable)
+        createLayout(gameGui.getMainPanel());
 
-        clashGUI.loadButton.addActionListener {
-            withFile("E:/Gry/Clash/save") {
-                save = parseFile(it.readBytes())
+        LifeBoard board = new LifeBoard(SIZE);
 
-                initializeUnits()
-
-                initializeTiles()
-
-                initializePlayers()
-
-                initializeCastles()
-
-                initializeMap()
+        gameGui.getRandomizeButton().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                board.randomize((int) (SIZE * SIZE * FACTOR));
+                refreshBoard(board.getBoard());
             }
-        }
+        });
 
-        initializeScripts()
-
-        clashGUI.saveButton.addActionListener {
-            withFile("E:/Gry/Clash/save") {
-                it.writeBytes(save.bytes.toByteArray())
+        gameGui.getIterateButton().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (int i = 0; i < Integer.parseInt(gameGui.getIterationsNumber().getText()); i++) {
+                    board.iterate();
+                }
+                refreshBoard(board.getBoard());
             }
-        }
+        });
+    }
 
-        createLayout(clashGUI.mainPanel)
+    private void refreshBoard(boolean[] board) {
+        gameGui.getGamePanel().setBoard(board);
+        gameGui.getGamePanel().repaint();
+        System.out.println("Population: " + calculatePopulation(board));
+    }
+
+    private long calculatePopulation(boolean[] board) {
+        return IntStream.range(0, board.length).parallel().filter(value -> board[value]).count();
     }
 
     public static void main(String[] args) throws IOException {
-        LifeParser parser = new LifeParser("Life/Guns/period-52-glider-gun.rle").parse();
+//        LifeParser parser = new LifeParser("Life/Guns/period-52-glider-gun.rle").parse();
+//
+//        LifeBoard board = new LifeBoard(SIZE)
+//                .load(parser.getData());
 
-        LifeBoard board = new LifeBoard(SIZE)
-                .load(parser.getData());
-
-        MainFrame frame = new MainFrame();
+        Main frame = new Main();
         frame.setSize(SIZE * SCALE, SIZE * SCALE);
         frame.setVisible(true);
 
-        EXECUTOR.submit((Callable<Void>) () -> {
-            for (int i = 0; i < 100000; i++) {
-                boolean[] iterate = board.iterate();
-                int iteration = board.getIteration();
-                System.out.println(iteration);
-                if (iteration % 10 == 1) {
-                    SwingUtilities.invokeAndWait(() -> {
-                        frame.getGamePanel().setBoard(iterate);
-                        frame.getGamePanel().repaint();
-                    });
-                }
-            }
-//            SwingUtilities.invokeAndWait(() -> {
-//                panel.setBoard(board.iterate());
-//                panel.repaint();
-//            });
-            return null;
-        });
+//        EXECUTOR.submit((Callable<Void>) () -> {
+//            for (int i = 0; i < 100000; i++) {
+//                boolean[] iterate = board.iterate();
+//                int iteration = board.getIteration();
+//                System.out.println(iteration);
+//                if (iteration % 10 == 1) {
+//                    SwingUtilities.invokeAndWait(() -> {
+//
+//                    });
+//                }
+//            }
+////            SwingUtilities.invokeAndWait(() -> {
+////                panel.setBoard(board.iterate());
+////                panel.repaint();
+////            });
+//            return null;
+//        });
     }
 }
 

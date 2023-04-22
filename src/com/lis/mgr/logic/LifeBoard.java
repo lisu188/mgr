@@ -1,11 +1,13 @@
 package com.lis.mgr.logic;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 public class LifeBoard {
     private boolean[] board;
-    private boolean toroid = false;    //TODO: toroid
+    private final boolean toroid = false;    //TODO: toroid
     private final int size;
     private int iteration = 0;
     private final Set<Integer> survives = Set.of(2, 3);
@@ -18,8 +20,8 @@ public class LifeBoard {
     }
 
     public LifeBoard randomize(int count) {
+        Random random = new Random();
         for (int i = 0; i < count; i++) {
-            Random random = new Random();
             int index = random.nextInt(size * size);
             board[index] = !board[index];
         }
@@ -45,6 +47,10 @@ public class LifeBoard {
 
     public static int toIndex(int x, int y, int size) {
         return x * size + y;
+    }
+
+    public boolean[] getBoard() {
+        return Arrays.copyOf(board, board.length);
     }
 
     public boolean[] iterate() {
