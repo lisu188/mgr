@@ -5,16 +5,16 @@ import com.lis.mgr.gui.GameGui;
 import com.lis.mgr.logic.LifeBoard;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 public class Main extends JFrame {
-    public static final int SIZE = 500;
-    public static final double FACTOR = 0.5;
+    public static final int SIZE = 1000;
+
     public static final int SCALE = 1;
 
     private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
@@ -22,7 +22,7 @@ public class Main extends JFrame {
 
 
     Main() {
-        createUI("Game of Life");
+        createUI();
     }
 
 
@@ -45,10 +45,10 @@ public class Main extends JFrame {
         pack();
     }
 
-    private void createUI(String title) {
-        setTitle(title);
+    private void createUI() {
+        setTitle("Game of Life");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(300, 200);
+//        setSize(300, 200);
         setLocationRelativeTo(null);
 
         gameGui = new GameGui();
@@ -57,33 +57,97 @@ public class Main extends JFrame {
 
         LifeBoard board = new LifeBoard(SIZE);
 
-        gameGui.getRandomizeButton().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                board.randomize((int) (SIZE * SIZE * FACTOR));
-                refreshBoard(board.getBoard());
-            }
+        gameGui.getRandomizeButton().addActionListener(e -> {
+            board.randomize((int) (SIZE * SIZE * Integer.parseInt(gameGui.getRandomizePercent().getText()) / 100.0));
+            refreshBoard(board);
         });
 
-        gameGui.getIterateButton().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                for (int i = 0; i < Integer.parseInt(gameGui.getIterationsNumber().getText()); i++) {
-                    board.iterate();
-                }
-                refreshBoard(board.getBoard());
+        gameGui.getIterateButton().addActionListener(e -> {
+            for (int i = 0; i < Integer.parseInt(gameGui.getIterationsNumber().getText()); i++) {
+                board.iterate();
             }
+            refreshBoard(board);
+        });
+
+        gameGui.getApplyRulesButton().addActionListener(e -> applyRules(board));
+
+        gameGui.getClearButton().addActionListener(e -> {
+            board.clear();
+            refreshBoard(board);
         });
     }
 
-    private void refreshBoard(boolean[] board) {
-        gameGui.getGamePanel().setBoard(board);
+
+    private void refreshBoard(LifeBoard board) {
+        boolean[] rawBoard = board.getBoard();
+        gameGui.getGamePanel().setBoard(rawBoard);
         gameGui.getGamePanel().repaint();
-        System.out.println("Population: " + calculatePopulation(board));
+        gameGui.getPopulationBar().setMaximum(rawBoard.length);
+        gameGui.getPopulationBar().setValue(calculatePopulation(rawBoard));
     }
 
-    private long calculatePopulation(boolean[] board) {
-        return IntStream.range(0, board.length).parallel().filter(value -> board[value]).count();
+    private void applyRules(LifeBoard board) {
+        Set<Integer> born = new HashSet<>();
+        if (gameGui.getBorn0().isSelected()) {
+            born.add(0);
+        }
+        if (gameGui.getBorn1().isSelected()) {
+            born.add(1);
+        }
+        if (gameGui.getBorn2().isSelected()) {
+            born.add(2);
+        }
+        if (gameGui.getBorn3().isSelected()) {
+            born.add(3);
+        }
+        if (gameGui.getBorn4().isSelected()) {
+            born.add(4);
+        }
+        if (gameGui.getBorn5().isSelected()) {
+            born.add(5);
+        }
+        if (gameGui.getBorn6().isSelected()) {
+            born.add(6);
+        }
+        if (gameGui.getBorn7().isSelected()) {
+            born.add(7);
+        }
+        if (gameGui.getBorn8().isSelected()) {
+            born.add(8);
+        }
+        Set<Integer> survives = new HashSet<>();
+        if (gameGui.getSurvive0().isSelected()) {
+            survives.add(0);
+        }
+        if (gameGui.getSurvive1().isSelected()) {
+            survives.add(1);
+        }
+        if (gameGui.getSurvive2().isSelected()) {
+            survives.add(2);
+        }
+        if (gameGui.getSurvive3().isSelected()) {
+            survives.add(3);
+        }
+        if (gameGui.getSurvive4().isSelected()) {
+            survives.add(4);
+        }
+        if (gameGui.getSurvive5().isSelected()) {
+            survives.add(5);
+        }
+        if (gameGui.getSurvive6().isSelected()) {
+            survives.add(6);
+        }
+        if (gameGui.getSurvive7().isSelected()) {
+            survives.add(7);
+        }
+        if (gameGui.getSurvive8().isSelected()) {
+            survives.add(8);
+        }
+        board.setRules(survives, born);
+    }
+
+    private int calculatePopulation(boolean[] board) {
+        return Math.toIntExact(IntStream.range(0, board.length).parallel().filter(value -> board[value]).count());
     }
 
     public static void main(String[] args) throws IOException {
@@ -93,7 +157,6 @@ public class Main extends JFrame {
 //                .load(parser.getData());
 
         Main frame = new Main();
-        frame.setSize(SIZE * SCALE, SIZE * SCALE);
         frame.setVisible(true);
 
 //        EXECUTOR.submit((Callable<Void>) () -> {

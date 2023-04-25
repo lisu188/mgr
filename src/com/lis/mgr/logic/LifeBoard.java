@@ -10,12 +10,22 @@ public class LifeBoard {
     private final boolean toroid = false;    //TODO: toroid
     private final int size;
     private int iteration = 0;
-    private final Set<Integer> survives = Set.of(2, 3);
-    private final Set<Integer> born = Set.of(3);
+
+    public void setRules(Set<Integer> survives, Set<Integer> born) {
+        this.survives = survives;
+        this.born = born;
+    }
+
+    private Set<Integer> survives = Set.of(2, 3);
+    private Set<Integer> born = Set.of(3);
 
 
     public LifeBoard(int size) {
         this.size = size;
+        clear(size);
+    }
+
+    private void clear(int size) {
         board = new boolean[size * size];
     }
 
@@ -117,5 +127,9 @@ public class LifeBoard {
 
     private void addAlive(int i, int j) {
         board[toIndex(i, j, size)] = true;
+    }
+
+    public void clear() {
+        clear(size);
     }
 }
